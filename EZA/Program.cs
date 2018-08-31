@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,38 +15,42 @@ namespace EZA
 
         static void Main(string[] args)
         {
-            while (true)
+            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "images");
+            int cellCount = GetCellCount();
+            int genCount = GetGenCount();
+            for (int i = 0; i < 255; i++)
             {
-                int cellCount = GetCellCount();
-                int genCount = GetGenCount();
-                int ruleNr = GetRuleNr();
-
-                PrintPattern(cellCount, genCount, ruleNr);
-
-                Console.WriteLine("Press any to continue...");
-                Console.ReadKey(true);
+                byte[] image = CreateImage(cellCount, genCount, i);
+                ExportImage(image, defaultPath);
                 Console.Clear();
             }
         }
 
-        private static void PrintPattern(int cellCount, int genCount, int ruleNr)
+        private static byte[] CreateImage(int cellCount, int genCount, int ruleNr)
         {
             string rule = GetBinaryRule(ruleNr);
-            Console.WriteLine($"{cellCount} cells; {genCount} generations; Rule #{ruleNr} ({rule})");
 
             //Initialize Generation 0
             string[] gen = new string[cellCount];
             gen.Populate("0");
             gen[cellCount / 2] = "1";
-            PrintGeneration(gen);
+            PrintGeneration(gen); //TODO in byte[] bzw. image speichern
 
             for (int i = 1; i <= genCount; i++)
             {
                 gen = GenerateGeneration(gen, rule);
-                PrintGeneration(gen);
+                PrintGeneration(gen); //TODO in byte[] bzw. image speichern
             }
+
+            return new byte[0];
         }
 
+
+        private static void ExportImage(byte[] image, string defaultPath)
+        {
+            //TODO
+            throw new NotImplementedException();
+        }
         private static string GetBinaryRule(int ruleNr)
         {
             string ruleBin = Convert.ToString(ruleNr, 2);
@@ -190,7 +195,7 @@ namespace EZA
             }
 
             return genCount;
-        } 
+        }
         #endregion
     }
 
