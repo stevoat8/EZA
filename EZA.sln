@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EZA", "EZA\EZA.csproj", "{BD0344F4-B741-420E-A661-0CFE75E72ADB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD0344F4-B741-420E-A661-0CFE75E72ADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD0344F4-B741-420E-A661-0CFE75E72ADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD0344F4-B741-420E-A661-0CFE75E72ADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD0344F4-B741-420E-A661-0CFE75E72ADB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B471223D-66D6-4E27-9A8D-36EE11ED20F4}
+	EndGlobalSection
+EndGlobal
