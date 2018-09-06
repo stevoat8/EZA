@@ -21,6 +21,9 @@ namespace EZA
         /// </summary>
         private static void Main(string[] args)
         {
+            int genCount = GetGenCount();
+            int cellCount = GetCellCount();
+
 #if DEBUG
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -40,7 +43,7 @@ namespace EZA
                 {
                     Bitmap image = CreateImage(cellCountDefault, genCountDefault, ruleNr);
                     image.Save(Path.Combine(defaultPath, "rule" + ruleNr + ".png"));
-                    Console.WriteLine($"Rule #{ruleNr}: created successfully");
+                    Console.WriteLine($"Rule #{ruleNr} created successfully");
                 }
                 catch (Exception ex)
                 {
@@ -54,6 +57,7 @@ namespace EZA
             Console.ReadKey(true);
 #endif
         }
+
         /// <summary>
         /// Creates an image for the evolution of the passed Rule.
         /// </summary>
@@ -125,6 +129,82 @@ namespace EZA
                 nextGen[c] = rule[ruleIndex].ToString();
             }
             return nextGen;
+        }
+
+        /// <summary>
+        /// Gets number of generation from console input.
+        /// </summary>
+        private static int GetGenCount()
+        {
+            int genCount;
+            while (true)
+            {
+                Console.Write($"Generations (default {genCountDefault}): ");
+                string input = Console.ReadLine();
+                if (input == "")
+                {
+                    genCount = genCountDefault;
+                }
+                else
+                {
+                    try
+                    {
+                        genCount = int.Parse(input);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Invalid input");
+                        continue;
+                    }
+                }
+                if (genCount < 1)
+                {
+                    Console.WriteLine("Minimum of at least 1 generation.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return genCount;
+        }
+
+        /// <summary>
+        /// Gets number of cells from console input.
+        /// </summary>
+        private static int GetCellCount()
+        {
+            int cellCount;
+            while (true)
+            {
+                Console.Write($"Cells (default {cellCountDefault}): ");
+                string input = Console.ReadLine();
+                if (input == "")
+                {
+                    cellCount = cellCountDefault;
+                }
+                else
+                {
+                    try
+                    {
+                        cellCount = int.Parse(input);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Invalid input");
+                        continue;
+                    }
+                }
+                if (cellCount < 8)
+                {
+                    Console.WriteLine("Minimum of 8 cells.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return cellCount;
         }
     }
 }
