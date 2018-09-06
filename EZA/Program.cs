@@ -4,214 +4,126 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using System.Diagnostics;
 
 namespace EZA
 {
     class Program
     {
-        const int genCountDefault = 75;
-        const int cellCountDefault = 150;
-        const string printSign = "X";
+        const int genCountDefault = 104;
+        const int cellCountDefault = genCountDefault * 2 + 1;
+        const int ruleLength = 8;
+        const int pixelSize = 10;
 
         static void Main(string[] args)
         {
-            string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "images");
-            int cellCount = GetCellCount();
-            int genCount = GetGenCount();
-            for (int i = 0; i < 255; i++)
+#if DEBUG
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+#endif
+            string defaultPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "images");
+
+            if (Directory.Exists(defaultPath) == false)
             {
-                byte[] image = CreateImage(cellCount, genCount, i);
-                ExportImage(image, defaultPath);
-                Console.Clear();
+                Directory.CreateDirectory(defaultPath);
             }
+
+            for (int ruleNr = 0; ruleNr < 256; ruleNr++)
+            {
+                try
+                {
+                    Bitmap image = CreateImage(cellCountDefault, genCountDefault, ruleNr);
+                    image.Save(Path.Combine(defaultPath, "rule" + ruleNr + ".png"));
+                    Console.WriteLine($"Rule #{ruleNr}: created successfully");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Rule #{ruleNr}: Error (Original error message: \"{ex.Message}\")");
+                }
+            }
+#if DEBUG
+            stopWatch.Stop();
+            Console.WriteLine("Stopwatch: " + stopWatch.ElapsedMilliseconds + " ms");
+            Console.Write("\nPress any key to quit...");
+            Console.ReadKey(true);
+#endif
         }
 
-        private static byte[] CreateImage(int cellCount, int genCount, int ruleNr)
+        /// <summary>
+        /// Erzeugt eine Grafik für die Evolution der übergebenen Regel.
+        /// </summary>
+        private static Bitmap CreateImage(int cellCount, int genCount, int ruleNr)
         {
             string rule = GetBinaryRule(ruleNr);
 
-            //Initialize Generation 0
-            string[] gen = new string[cellCount];
-            gen.Populate("0");
-            gen[cellCount / 2] = "1";
-            PrintGeneration(gen); //TODO in byte[] bzw. image speichern
-
-            for (int i = 1; i <= genCount; i++)
+            SolidBrush pixelBrush = new SolidBrush(Color.Black);
+            Bitmap image = new Bitmap(cellCount * pixelSize, (genCount + 1) * pixelSize);
+            using (Graphics graphic = Graphics.FromImage(image))
             {
-                gen = GenerateGeneration(gen, rule);
-                PrintGeneration(gen); //TODO in byte[] bzw. image speichern
+                graphic.Clear(Color.White);
+
+                // Generation 0 initialisieren
+                string[] gen = new string[cellCount];
+                for (int i = 0; i < cellCount; i++)
+                {
+                    gen[i] = "0";
+                }
+                gen[cellCount / 2] = "1";
+
+                for (int y = 0; y <= genCount; y++)
+                {
+                    for (int x = 0; x < cellCount; x++)
+                    {
+                        if (gen[x] == "1")
+                        {
+                            graphic.FillRectangle(pixelBrush, x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                        }
+                    }
+                    //TODO: GenerateNextGeneration wird noch einmal zu oft aufgerufen (immer für genCount+1).
+                    gen = GenerateNextGeneration(gen, rule);
+                }
             }
 
-            return new byte[0];
+            return image;
         }
 
-
-        private static void ExportImage(byte[] image, string defaultPath)
-        {
-            //TODO
-            throw new NotImplementedException();
-        }
+        /// <summary>
+        /// Generiert zu einer Dezimalmal die passende Regel als Binärzahl mit führenden Nullen.
+        /// </summary>
         private static string GetBinaryRule(int ruleNr)
         {
-            string ruleBin = Convert.ToString(ruleNr, 2);
-            string[] rule = new string[8] { "0", "0", "0", "0", "0", "0", "0", "0", };
+            //Dezimalzahl in Binärzahl konvertieren...
+            string binRule = Convert.ToString(ruleNr, 2);
 
-            int offset = 8 - ruleBin.Length;
-            for (int i = 0; i < ruleBin.Length; i++)
+            //...und mit führenden Nullen auffüllen
+            string leadingZeros = "";
+            for (int i = 0; i < ruleLength - binRule.Length; i++)
             {
-                rule[offset + i] = ruleBin[i].ToString();
+                leadingZeros += "0";
             }
-            return string.Join("", rule);
+            return leadingZeros + binRule;
         }
 
-        private static string[] GenerateGeneration(string[] gen, string rule)
+        /// <summary>
+        /// Erzeugt eine Generation an Zeichen/Pixel, basierend auf der vorhergehenden 
+        /// Generation und der anzuwendenen Regel.
+        /// </summary>
+        private static string[] GenerateNextGeneration(string[] gen, string rule)
         {
             int cells = gen.Length;
-            string[] newGen = new string[cells];
+            string[] nextGen = new string[cells];
             for (int c = 0; c < cells; c++)
             {
                 string pre1 = c > 0 ? gen[c - 1] : "0";
                 string pre2 = gen[c];
                 string pre3 = c < cells - 1 ? gen[c + 1] : "0";
-                int ruleIndex = 8 - Convert.ToInt32(pre1 + pre2 + pre3, 2) - 1;
-                newGen[c] = rule[ruleIndex].ToString();
+                int ruleIndex = ruleLength - Convert.ToInt32(pre1 + pre2 + pre3, 2) - 1;
+                nextGen[c] = rule[ruleIndex].ToString();
             }
-            return newGen;
-        }
-
-        private static void PrintGeneration(string[] gen)
-        {
-            foreach (string cell in gen)
-            {
-                if (cell == "0")
-                {
-                    Console.Write(" ");
-                }
-                else if (cell == "1")
-                {
-                    Console.Write(printSign);
-                }
-            }
-            Console.WriteLine();
-        }
-
-        #region Input
-        private static int GetCellCount()
-        {
-            int cellCount;
-            while (true)
-            {
-                Console.Write($"Cells (default {cellCountDefault}): ");
-                string input = Console.ReadLine();
-                if (input == "")
-                {
-                    cellCount = cellCountDefault;
-                }
-                else
-                {
-                    try
-                    {
-                        cellCount = int.Parse(input);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Invalid input");
-                        continue;
-                    }
-                }
-                if (cellCount < 8)
-                {
-                    Console.WriteLine("Min. 8 cells.");
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return cellCount;
-        }
-
-        private static int GetGenCount()
-        {
-            int genCount;
-            while (true)
-            {
-                Console.Write($"Generations (default {genCountDefault}): ");
-                string input = Console.ReadLine();
-                if (input == "")
-                {
-                    genCount = genCountDefault;
-                }
-                else
-                {
-                    try
-                    {
-                        genCount = int.Parse(input);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Invalid input");
-                        continue;
-                    }
-                }
-                if (genCount < 1)
-                {
-                    Console.WriteLine("Min. 1 generation.");
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return genCount;
-        }
-
-        private static int GetRuleNr()
-        {
-            int genCount;
-            while (true)
-            {
-                Console.Write("Rule: ");
-                string input = Console.ReadLine();
-                try
-                {
-                    genCount = int.Parse(input);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Invalid input");
-                    continue;
-                }
-                if (genCount > 255)
-                {
-                    Console.WriteLine("Max. rule is 255.");
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return genCount;
-        }
-        #endregion
-    }
-
-    static class ArrayExtension
-    {
-        /// <summary>
-        /// Füllt ein string-Array mit dem übergebenen Wert auf.
-        /// </summary>
-        /// <param name="arr"></param>
-        /// <param name="defaultValue"></param>
-        public static void Populate(this string[] arr, string defaultValue)
-        {
-            for (int i = 0; i < arr.Length; i++)
-            {
-                arr[i] = defaultValue;
-            }
+            return nextGen;
         }
     }
 }
