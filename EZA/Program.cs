@@ -1,22 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 
 namespace EZA
 {
-    class Program
+    /// <summary>
+    /// The program works as an elementary cellular automaton which can be configured by 256 different binary rules.
+    /// The program applies all 256 rules to generate evolution images.
+    /// </summary>
+    internal class Program
     {
-        const int genCountDefault = 104;
-        const int cellCountDefault = genCountDefault * 2 + 1;
-        const int ruleLength = 8;
-        const int pixelSize = 10;
+        private const int genCountDefault = 104;
+        private const int cellCountDefault = genCountDefault * 2 + 1;
+        private const int ruleLength = 8;
+        private const int pixelSize = 10;
 
-        static void Main(string[] args)
+        /// <summary>
+        /// Generates evolution images and saves them in seperate files.
+        /// </summary>
+        private static void Main(string[] args)
         {
 #if DEBUG
             Stopwatch stopWatch = new Stopwatch();
@@ -51,9 +54,8 @@ namespace EZA
             Console.ReadKey(true);
 #endif
         }
-
         /// <summary>
-        /// Erzeugt eine Grafik für die Evolution der übergebenen Regel.
+        /// Creates an image for the evolution of the passed Rule.
         /// </summary>
         private static Bitmap CreateImage(int cellCount, int genCount, int ruleNr)
         {
@@ -65,7 +67,7 @@ namespace EZA
             {
                 graphic.Clear(Color.White);
 
-                // Generation 0 initialisieren
+                // Initialize generation 0
                 string[] gen = new string[cellCount];
                 for (int i = 0; i < cellCount; i++)
                 {
@@ -82,7 +84,7 @@ namespace EZA
                             graphic.FillRectangle(pixelBrush, x * pixelSize, y * pixelSize, pixelSize, pixelSize);
                         }
                     }
-                    //TODO: GenerateNextGeneration wird noch einmal zu oft aufgerufen (immer für genCount+1).
+                    //TODO: Method is called once too often (for genCount + 1).
                     gen = GenerateNextGeneration(gen, rule);
                 }
             }
@@ -91,14 +93,14 @@ namespace EZA
         }
 
         /// <summary>
-        /// Generiert zu einer Dezimalmal die passende Regel als Binärzahl mit führenden Nullen.
+        /// Generates the matching binary rule for the passed decimal digit.
         /// </summary>
         private static string GetBinaryRule(int ruleNr)
         {
-            //Dezimalzahl in Binärzahl konvertieren...
+            //Convert decimal to binary...
             string binRule = Convert.ToString(ruleNr, 2);
 
-            //...und mit führenden Nullen auffüllen
+            //...and filling up with leading zeros
             string leadingZeros = "";
             for (int i = 0; i < ruleLength - binRule.Length; i++)
             {
@@ -108,8 +110,7 @@ namespace EZA
         }
 
         /// <summary>
-        /// Erzeugt eine Generation an Zeichen/Pixel, basierend auf der vorhergehenden 
-        /// Generation und der anzuwendenen Regel.
+        /// Generates a generation based on the previous one and the given binary rule
         /// </summary>
         private static string[] GenerateNextGeneration(string[] gen, string rule)
         {
